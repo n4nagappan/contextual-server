@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/n4nagappan/contextual-server#readme",
   "dependencies": {
+    "crypto": "0.0.3",
     "request": "^2.67.0",
     "restify": "^4.0.3",
     "underscore": "^1.8.3",

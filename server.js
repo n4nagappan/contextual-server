@@ -4,6 +4,7 @@ var request = require('request');
 var extractor = require('unfluff');
 var restify = require('restify');
 var extractKeywords = require('./lib/extractKeywords.js');
+// Debug later var DEFAULT_URL = 'http://www.nytimes.com/2015/12/13/us/politics/ted-cruz-surges-past-donald-trump-to-lead-in-iowa-poll.html';
 var DEFAULT_URL = 'http://www.newyorker.com/magazine/2015/02/23/shape-things-come';
 var DEFAULT_TERM = 'Jonathan Ive';
 
@@ -16,6 +17,8 @@ var server = restify.createServer({
 });
 
 server.use(restify.queryParser());
+server.use( restify.CORS() );
+server.use( restify.fullResponse() );
 //server.use(restify.bodyParser());
  
 server.get('/contents', function (req, res, next) {
@@ -36,6 +39,14 @@ server.get('/contents', function (req, res, next) {
   });
 });
 
+var infoBoxExtractor = require('./InfoBoxExtractor.js');
+
+server.get('/people/:person', function(req, res, next){
+  console.log( req.params.person );
+  infoBoxExtractor.extract(req.params.person, function(err, response){
+    res.send(response);
+  });
+});
 
 server.get('/search', function(req, res, next){
   var term = req.params.q || DEFAULT_TERM ;

@@ -1,39 +1,36 @@
 'use strict';
 
+const express = require('express');
+const path = require('path');
+const port = process.env.PORT || 8080;
+const app = express();
+
+
 var request = require('request');
 var extractor = require('unfluff');
 var restify = require('restify');
 var extractKeywords = require('./lib/extractKeywords.js');
+
 // Debug later var DEFAULT_URL = 'http://www.nytimes.com/2015/12/13/us/politics/ted-cruz-surges-past-donald-trump-to-lead-in-iowa-poll.html';
-var DEFAULT_URL = 'http://www.newyorker.com/magazine/2015/02/23/shape-things-come';
 var DEFAULT_TERM = 'Jonathan Ive';
 
 var wikiParser = require('wiki-infobox-parser');
+var infoBoxExtractor = require('./InfoBoxExtractor.js');
 
-//var DEFAULT_URL = 'http://waitbutwhy.com/2014/09/muhammad-isis-iraqs-full-story.html';
- 
-var server = restify.createServer({
-  name: 'contextual'
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
 });
 
-server.use(restify.queryParser());
-server.use( restify.CORS() );
-server.use( restify.fullResponse() );
-//server.use(restify.bodyParser());
- 
+// serve static assets normally
+app.use(express.static(__dirname + '/public'));
 
-//// handle every other route with index.html, which will contain
-//// a script tag to your application's JavaScript file(s).
-//server.get('*', function (request, response){
-//    response.sendFile(path.resolve(__dirname, 'public', 'index.html'))
-//})
-
-
-server.get('/contents', function (req, res, next) {
-  var url = req.params.url;
+app.get('/contents', function (req, res, next) {
+  var url = req.query.url;
   //console.log( url );
 
-  request(url || DEFAULT_URL , function(err, urlRes, body){
+  request(url , function(err, urlRes, body){
       if(err){
           return next(err);
       }
@@ -47,17 +44,16 @@ server.get('/contents', function (req, res, next) {
   });
 });
 
-var infoBoxExtractor = require('./InfoBoxExtractor.js');
 
-server.get('/people/:person', function(req, res, next){
+app.get('/people/:person', function(req, res, next){
   console.log( req.params.person );
   infoBoxExtractor.extract(req.params.person, function(err, response){
     res.send(response);
   });
 });
 
-server.get('/search', function(req, res, next){
-  var term = req.params.q || DEFAULT_TERM ;
+app.get('/search', function(req, res, next){
+  var term = req.query.q || DEFAULT_TERM ;
   //console.log( term);
 
   wikiParser('Jonathan Ive', function(err, result) {
@@ -79,12 +75,13 @@ server.get('/search', function(req, res, next){
   //    res.send(data.text);
   //});
 });
- 
-server.get(/.*/, restify.serveStatic({
-  'directory': 'public',
-  'default': 'index.html'
-}));
 
-server.listen(8080, function () {
-  console.log('%s listening at %s', server.name, server.url);
-});
+// handle every other route with index.html, which will contain
+// a script tag to your application's JavaScript file(s).
+app.get('*', function (request, response){
+  response.sendFile(path.resolve(__dirname, 'public', 'index.html'));
+})
+
+
+app.listen(port);
+console.log("server started on port " + port);

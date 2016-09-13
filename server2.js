@@ -23,12 +23,14 @@ app.use(function(req, res, next) {
   next();
 });
 
+
+
 // serve static assets normally
 app.use(express.static(__dirname + '/public'));
 
 app.get('/contents', function (req, res, next) {
   var url = req.query.url;
-  //console.log( url );
+  console.log( "requested url : " + url );
 
   request(url , function(err, urlRes, body){
       if(err){
@@ -48,6 +50,9 @@ app.get('/contents', function (req, res, next) {
 app.get('/people/:person', function(req, res, next){
   console.log( req.params.person );
   infoBoxExtractor.extract(req.params.person, function(err, response){
+    if(err){
+      res.send({snippet:""});
+    }
     res.send(response);
   });
 });
@@ -76,9 +81,11 @@ app.get('/search', function(req, res, next){
   //});
 });
 
+
 // handle every other route with index.html, which will contain
 // a script tag to your application's JavaScript file(s).
 app.get('*', function (request, response){
+  console.log("serving index.html");
   response.sendFile(path.resolve(__dirname, 'public', 'index.html'));
 })
 

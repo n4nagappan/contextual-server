@@ -5,6 +5,7 @@ function getWikiLink(name, cb){
   request(url + name, function(err, res, body){
     var obj = JSON.parse(body);
     var imageUrl = extractImageLink( obj.query.pages );
+    console.log("Image URL : " + imageUrl);
     return cb(null, imageUrl);
   });
 }

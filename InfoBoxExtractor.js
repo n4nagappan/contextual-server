@@ -17,11 +17,38 @@ InfoBoxExtractor.extract = function(keyword , cb){
       return cb(err);
     } 
 
-    var title = JSON.parse(body).query.search[0].title;
+    var searchResults;
+    try{
+      console.log( body );
+      searchResults = JSON.parse(body).query.search;
+    }
+    catch(e){
+      console.log( e );
+      return cb("KEYWORD_SEARCH_ERROR");
+    }
+
+    if(searchResults.length == 0){
+      return cb("NO_SEARCH_RESULTS");
+    } 
+
+    var title = searchResults[0].title;
+
     console.log("Normalized : " + title);
     request(snippetExtractionUrl + title, function( err, res, body ){
+    var obj;
 
-      var obj = extractSnippet(JSON.parse(body).query.pages);
+      try{
+        console.log( body );
+        obj = extractSnippet(JSON.parse(body).query.pages);
+      }
+      catch(e){
+        console.log( e );
+      }
+
+      if( typeof obj === "undefined" ){
+        return cb("EXTRACTION_FAILED");
+      }
+
       response.snippet = obj.extract;
       console.log("Snippet : " + response.snippet);
       console.log("Page Image : " + obj.pageimage);
